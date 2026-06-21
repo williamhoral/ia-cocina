@@ -1,102 +1,30 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>La Abuelita Cocinera IA</title>
-    <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; color: #333; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
-        .container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 600px; width: 100%; text-align: center; }
-        h1 { color: #d32f2f; margin-bottom: 20px; font-size: 28px; }
-        .api-box { background-color: #fff9c4; border: 2px dashed #fbc02d; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
-        input, textarea { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
-        input { background-color: #fffde7; font-weight: bold; }
-        button { background-color: #2e7d32; color: white; border: none; padding: 14px 20px; font-size: 16px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; transition: background 0.3s; }
-        button:hover { background-color: #1b5e20; }
-        #output { margin-top: 25px; text-align: left; background: #fafafa; padding: 20px; border-radius: 8px; border-left: 5px solid #2e7d32; display: none; white-space: pre-line; box-shadow: inset 0 1px 3px rgba(0,0,0,0.05); }
-        .audio-btn { background-color: #0288d1; margin-top: 15px; display: none; }
-        .audio-btn:hover { background-color: #01579b; }
-    </style>
-</head>
-<body>
+async function preguntarAbuelita() {
+  const ingredientes = document.getElementById('ingredientesInput').value;
+  const resultadoDiv = document.getElementById('resultado');
 
-<div class="container">
-    <h1>👵🏼 La Abuelita Cocinera IA</h1>
-    
-    <div class="api-box">
-        <label style="font-weight: bold; color: #555;">🔑 Pega aquí tu clave de Gemini (Nueva versión AQ):</label>
-        <input type="text" id="apiKey" placeholder="AQ.Ab8RN6...">
-    </div>
+  if (!ingredientes) {
+    alert('Por favor, escribe algún ingrediente.');
+    return;
+  }
 
-    <label style="font-weight: bold; text-align: left; display: block; color: #555;">🥚 Ingredientes que tienes en casa:</label>
-    <textarea id="ingredients" rows="3" placeholder="Ej: 2 huevos, un tomate, arroz cocinado..."></textarea>
+  resultadoDiv.innerHTML = 'Pensando en qué cocinar... 👵✨';
 
-    <button onclick="askAbuelita()">🍳 ¡Preguntar a la Abuelita!</button>
-    <button id="audioBtn" class="audio-btn" onclick="speakRecipe()">🔊 Escuchar Short de la Abuelita</button>
+  try {
+    const response = await fetch('/api/cooking', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ ingredientes: ingredientes }) // ¡Ya no enviamos la API KEY desde el diseño!
+    });
 
-    <div id="output"></div>
-</div>
-
-<script>
-    let scriptGlobal = "";
-
-    async function askAbuelita() {
-        const apiKey = document.getElementById('apiKey').value.trim();
-        const ingredients = document.getElementById('ingredients').value.trim();
-        const outputDiv = document.getElementById('output');
-        const audioBtn = document.getElementById('audioBtn');
-
-        if (!apiKey || !ingredients) {
-            alert('Por favor, completa la clave de API y los ingredientes.');
-            return;
-        }
-
-        outputDiv.style.display = 'block';
-        outputDiv.innerHTML = '<strong>👵🏼 La abuelita está pensando qué cocinar...</strong>';
-        audioBtn.style.display = 'none';
-
-        const promptText = `Actúa como una abuela experta en cocina y creadora de contenido. Con estos ingredientes: "${ingredients}", haz lo siguiente:
-1. Dame una receta fácil explicando el paso a paso de forma muy cariñosa.
-2. Dame un secreto técnico de cocina aplicable a la receta.
-3. Escribe un guion cortito para un video de YouTube Short/Reel (máximo 50 segundos) invitando a la gente a cocinar, usando frases empáticas y pausadas.`;
-
-        // Modificado para usar los headers correctos de la nueva especificación de Google para claves AQ
-        try {
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-goog-api-key': apiKey
-                },
-                body: JSON.stringify({
-                    contents: [{ parts: [{ text: promptText }] }]
-                })
-            });            const data = await response.json();
-
-            if (data.error) {
-                outputDiv.innerHTML = `<span style="color:red;"><strong>Error de Google:</strong> ${data.error.message}</span>`;
-                return;
-            }
-
-            const recipeText = data.candidates[0].content.parts[0].text;
-            outputDiv.innerHTML = recipeText;
-            
-            scriptGlobal = recipeText;
-            audioBtn.style.display = 'block';
-
-        } catch (error) {
-            outputDiv.innerHTML = '<span style="color:red;"><strong>Error de conexión:</strong> No se pudo conectar con la Abuelita. Verifica la clave.</span>';
-        }
+    const data = await response.json();
+    if (data.receta) {
+      resultadoDiv.innerHTML = data.receta;
+    } else {
+      resultadoDiv.innerHTML = 'Error: ' + data.error;
     }
-
-    function speakRecipe() {
-        if (!scriptGlobal) return;
-        const utterance = new SpeechSynthesisUtterance(scriptGlobal);
-        utterance.lang = 'es-ES';
-        utterance.rate = 0.9; 
-        window.speechSynthesis.speak(utterance);
-    }
-</script>
-
-</body>
-</html>
+  } catch (error) {
+    resultadoDiv.innerHTML = 'No se pudo conectar con la abuelita.';
+  }
+}
