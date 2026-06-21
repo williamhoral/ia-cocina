@@ -101,33 +101,23 @@ async function preguntarAbuelita() {
   
   resultadoDiv.innerHTML = 'Pensando en qué cocinar... 👵✨'; 
   
-  // Tu clave original que pusiste en los pasos anteriores
-  const apiKey = "AQAb8RN6LcRkRitZK5ZYoq9D3sbei9MzgyEI5yilkaSnqzCHT2HA";
-  
-  // Usamos el formato correcto v1beta de la API pública de Google
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-  
   try { 
-    const response = await fetch(url, { 
+    // Volvemos a llamar de manera segura a la API interna de Vercel
+    const response = await fetch('/api/cooking', { 
       method: 'POST', 
       headers: { 'Content-Type': 'application/json' }, 
-      body: JSON.stringify({
-        contents: [{
-          parts: [{ text: `Actúa como una abuela cocinera experta y cariñosa. Te daré una lista de ingredientes y debes sugerirme una o dos recetas fáciles que pueda preparar usándolos. Si faltan ingredientes básicos (como sal, agua o aceite), asume que los tengo. Usa emojis y un tono muy dulce. Ingredientes: ${ingredientes}` }]
-        }]
-      })
+      body: JSON.stringify({ ingredientes: ingredientes })
     }); 
     
     const data = await response.json(); 
     
-    // Corregido el mapeo para leer bien la respuesta directa de Google
-    if (data.candidates && data.candidates[0].content.parts[0].text) { 
-      resultadoDiv.innerHTML = data.candidates[0].content.parts[0].text; 
+    if (data.receta) { 
+      resultadoDiv.innerHTML = data.receta; 
     } else { 
-      resultadoDiv.innerHTML = 'La abuelita no entendió la combinación. ¡Intenta de nuevo!'; 
+      resultadoDiv.innerHTML = 'Error de la Abuelita: ' + data.error; 
     } 
   } catch (error) { 
-    resultadoDiv.innerHTML = 'Hubo un problema al conectar con el servidor de la abuelita.'; 
+    resultadoDiv.innerHTML = 'No se pudo conectar con la abuelita.'; 
   } 
 }
 </script>
