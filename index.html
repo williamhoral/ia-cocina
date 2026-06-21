@@ -81,7 +81,7 @@
 <div class="container">
     <h1>👵 La Abuelita Cocinera IA</h1>
     
-    <label for="ingredientesInput">🥚 Ingredientes que tienes en casa:</label>
+    <label for="ingredientesInput">🍳 Ingredientes que tienes en casa:</label>
     <textarea id="ingredientesInput" placeholder="Ej: 2 huevos, un tomate, arroz cocinado..."></textarea>
     
     <button onclick="preguntarAbuelita()">🍳 ¡Preguntar a la Abuelita!</button>
@@ -101,21 +101,33 @@ async function preguntarAbuelita() {
   
   resultadoDiv.innerHTML = 'Pensando en qué cocinar... 👵✨'; 
   
+  // Tu clave original que pusiste en los pasos anteriores
+  const apiKey = "AQAb8RN6LcRkRitZK5ZYoq9D3sbei9MzgyEI5yilkaSnqzCHT2HA";
+  
+  // Usamos el formato correcto v1beta de la API pública de Google
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+  
   try { 
-    const response = await fetch('/api/cooking', { 
+    const response = await fetch(url, { 
       method: 'POST', 
       headers: { 'Content-Type': 'application/json' }, 
-      body: JSON.stringify({ ingredientes: ingredientes }) 
+      body: JSON.stringify({
+        contents: [{
+          parts: [{ text: `Actúa como una abuela cocinera experta y cariñosa. Te daré una lista de ingredientes y debes sugerirme una o dos recetas fáciles que pueda preparar usándolos. Si faltan ingredientes básicos (como sal, agua o aceite), asume que los tengo. Usa emojis y un tono muy dulce. Ingredientes: ${ingredientes}` }]
+        }]
+      })
     }); 
     
     const data = await response.json(); 
-    if (data.receta) { 
-      resultadoDiv.innerHTML = data.receta; 
+    
+    // Corregido el mapeo para leer bien la respuesta directa de Google
+    if (data.candidates && data.candidates[0].content.parts[0].text) { 
+      resultadoDiv.innerHTML = data.candidates[0].content.parts[0].text; 
     } else { 
-      resultadoDiv.innerHTML = 'Error de la Abuelita: ' + data.error; 
+      resultadoDiv.innerHTML = 'La abuelita no entendió la combinación. ¡Intenta de nuevo!'; 
     } 
   } catch (error) { 
-    resultadoDiv.innerHTML = 'No se pudo conectar con la abuelita. Verifica la conexión.'; 
+    resultadoDiv.innerHTML = 'Hubo un problema al conectar con el servidor de la abuelita.'; 
   } 
 }
 </script>
