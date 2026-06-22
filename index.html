@@ -101,10 +101,10 @@ async function preguntarAbuelita() {
   
   resultadoDiv.innerHTML = 'Pensando en qué cocinar... 👵✨'; 
   
-  // Ponemos tu clave versión AQ de forma directa para evitar intermediarios
+  // Tu clave con el formato nuevo de Google (AQ...)
   const apiKey = "AQAb8RN6LcRkRitZK5ZYoq9D3sbei9MzgyEI5yilkaSnqzCHT2HA";
   
-  // URL compatible con las firmas nuevas de Google
+  // URL de conexión super directa sin intermediarios
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
   
   try { 
@@ -123,10 +123,10 @@ async function preguntarAbuelita() {
     if (data.candidates && data.candidates[0].content.parts[0].text) { 
       resultadoDiv.innerHTML = data.candidates[0].content.parts[0].text; 
     } else { 
-      resultadoDiv.innerHTML = 'La abuelita no entendió la combinación o la clave requiere revisión. ¡Intenta de nuevo!'; 
+      resultadoDiv.innerHTML = 'La abuelita no pudo procesar la receta. Revisa la clave.'; 
     } 
   } catch (error) { 
-    resultadoDiv.innerHTML = 'Hubo un problema de conexión directa con Google.'; 
+    resultadoDiv.innerHTML = 'Error al conectar directo con el servidor de Google.'; 
   } 
 }
 </script>
